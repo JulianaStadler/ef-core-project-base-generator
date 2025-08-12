@@ -1,0 +1,20 @@
+{
+"Soltos" : [
+    "SoltoUm",
+    "SoltoDois"
+],
+
+"Room" : [
+    "CreateRoom",
+    "EditRoom",
+    "DeleteRoom",
+    "SeeRoom"
+],
+
+"User" : [
+    "CreateUser",
+    "EditiUser",
+    "DeleteUser",
+    "SeeUser"
+]
+}
