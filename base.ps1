@@ -19,7 +19,7 @@ pode tirar a pasta e usar o programa pre escrito normalmente
 echo "Iniciando criacao"
 
 # Pasta onde foi salvo os 3 arquivos, PRECISA TERMINAR COM \
-$Pasta = "C:\Users\Aluno\Desktop\Nova pasta\"
+$Pasta = "C:\Users\Aluno\Desktop\opaopa\ef-core-project-base-generator"
 $NomePrograma = "PastaCriacao"
 
 # Entra no caminho da pasta
@@ -37,30 +37,133 @@ echo "criando o programa $NomePrograma"
 # dotnet new gitignore
 
 # Criando a pasta models e os Models
-mkdir Models | cd
-foreach ($model in $models)
-{
-ni "$model.cs"
-"namespace $NomePrograma.Models;
-public class $model
-{
-    public Guid Id { get; set; }
-}" > "$model.cs"
-}
+# mkdir Models | cd
+# foreach ($model in $models)
+# {
+# ni "$model.cs"
+# "namespace $NomePrograma.Models;
+# public class $model
+# {
+#     public Guid Id { get; set; }
+# }" > "$model.cs"
+# }
 
-# Criando o DBContext.cs
-ni "${NomePrograma}DBContext.cs"
+# # Criando o DBContext.cs
+# ni "${NomePrograma}DBContext.cs"
 
+# cd ../
 
-cd ../
 
 # Funcao que gera as pastas models com os arquivos internos
 
 
 
-# Ler cada linha do arquivo models
-# for /f "usebackq tokens=* delims=" %%A in ("%arquivo%") do (
-#     set "linha=%%A"
-#     echo Linha: !linha!
-# )
+
+# Funcao que gera os arquivos internos dos UseCases
+function GeraArquivos {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$nomeUseCase,
+        [string]$namespace
+    )
+
+# criando payload
+ni "${nomeUseCase}Payload.cs"
+"namespace ${namespace};
+using System.ComponentModel.DataAnnotations;
+
+public record ${nomeUseCase}Payload
+{
+
+}" > "${nomeUseCase}Payload.cs"
+
+
+# criando response
+ni "${nomeUseCase}Response.cs"
+"namespace ${namespace};
+
+public record ${nomeUseCase}Response;" > "${nomeUseCase}Response.cs"
+
+
+# criando use case
+ni "${nomeUseCase}UseCase.cs"
+"namespace ${namespace};
+
+public record ${nomeUseCase}UseCase
+{
+    public async Task<Result<${nomeUseCase}Response>> Do(${nomeUseCase}Payload payload)
+    {
+        return Result<${nomeUseCase}Response>.Success(null);
+    }
+}" > "${nomeUseCase}UseCase.cs"
+   
+}
+
+
+
+
+
+# Funcao que gera as pastas dos UseCases com base no arquivo usecases.json
+function GeraPastas {
+    param (
+        [Parameter(Mandatory=$true)]
+        [object]$obj,
+        [string]$namespace = "${NomePrograma}.UseCases"
+    )
+
+
+    # esse objeto tem chaves? ex {}
+    if ($obj -is [System.Collections.IEnumerable] -and -not ($obj -is [string])) {
+        foreach ($item in $obj) {
+            mkdir $item | cd
+            $namespaceNova = "$namespace.$item"
+            GeraPastas -obj $item -namespace $namespaceNova
+            cd ..
+        }
+    }
+    # esse item e uma lista? ex []
+    elseif ($obj -is [PSCustomObject] -or $obj -is [Hashtable]) {
+        foreach ($Case in $obj.PSObject.Properties) {
+            # se for para o use case ficar solto dentro da pasta UseCases
+            if ($Case.Name -eq "Soltos"){
+                GeraPastas -obj $Case.Value -namespace $namespace
+            } else {
+                mkdir $Case.Name | cd
+                $namespaceNova = "$namespace.$($Case.Name)"
+                GeraPastas -obj $Case.Value -namespace $namespaceNova
+                cd ..
+            }
+        }
+    }
+    # somente um item comum, ex ""
+    else {
+        GeraArquivos -nomeUseCase $obj -namespace $namespace
+    }
+}
+
+mkdir UseCases | cd
+GeraPastas -obj $UseCases
+cd ..
+
+ni Result.cs
+"namespace ${NomePrograma};
+
+public record Result<T>(
+    T Data,
+    bool IsSuccess,
+    string Reason
+)
+{
+    public static Result<T> Success(T data)
+        => new(data, true, null);
+    
+    public static Result<T> Fail(string reason)
+        => new(default, false, reason);
+}" > Result.cs
+
+
+
+
+
+
 

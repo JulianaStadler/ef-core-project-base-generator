@@ -4,16 +4,16 @@
     "SoltoDois"
 ],
 
-"Room" : [
-    "CreateRoom",
-    "EditRoom",
-    "DeleteRoom",
-    "SeeRoom"
-],
+"Room" : {
+    "CreateRoom" : ["Cozinha", "Quarto"],
+    "EditRoom" : ["NewCozinha", "NewQuarto"],
+    "DeleteRoom" : ["SemCozinha", "SemQuarto"],
+    "SeeRoom" : ["CozinhaGeladeira", "QuartoCama"]
+},
 
 "User" : [
     "CreateUser",
-    "EditiUser",
+    "EditUser",
     "DeleteUser",
     "SeeUser"
 ]
